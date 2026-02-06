@@ -1,0 +1,17 @@
+{
+  "name": "sre-demo-backend",
+  "version": "1.0.0",
+  "description": "Backend API for SRE Agent Demo",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mssql": "^10.0.1"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "sre-demo-webapp",
+  "version": "1.0.0",
+  "description": "Azure SRE Agent Demo - Web App with Angular frontend and Node.js backend",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'No build step needed - static files included'"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.2.0",
+    "applicationinsights": "^2.9.5",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mssql": "^10.0.1"
+  }
+}

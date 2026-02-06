@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRE Agent Demo - Product Catalog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fa;
+            color: #1a1a2e;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
+            color: white;
+            padding: 24px 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            max-width: 1200px;
+            margin: 8px auto 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-badge.connected {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+        }
+
+        .status-badge.connecting {
+            background: rgba(251, 191, 36, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.5);
+        }
+
+        .status-badge.disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .connected .status-dot {
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        .connecting .status-dot {
+            background: #fbbf24;
+            animation: pulse 1s infinite;
+        }
+
+        .disconnected .status-dot {
+            background: #ef4444;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-banner {
+            padding: 16px 32px;
+        }
+
+        .status-banner.disconnected {
+            background: #fee2e2;
+            border-bottom: 2px solid #ef4444;
+        }
+
+        .banner-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .banner-icon {
+            font-size: 24px;
+        }
+
+        .banner-text {
+            flex: 1;
+        }
+
+        .banner-text p {
+            margin-top: 4px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .retry-info {
+            font-weight: 600;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .main-content {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px;
+            width: 100%;
+        }
+
+        .loading-container, .error-container {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #0078d4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .error-container h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #ef4444;
+        }
+
+        .error-details {
+            background: #1a1a2e;
+            color: #ef4444;
+            padding: 16px 24px;
+            border-radius: 8px;
+            margin: 20px auto;
+            max-width: 600px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            word-break: break-all;
+        }
+
+        .retry-button {
+            background: #0078d4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .retry-button:hover {
+            background: #005a9e;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .product-category {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a1a2e;
+        }
+
+        .product-description {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0078d4;
+        }
+
+        .product-stock {
+            font-size: 13px;
+            color: #10b981;
+            font-weight: 500;
+        }
+
+        .product-stock.low-stock {
+            color: #f59e0b;
+        }
+
+        .footer {
+            background: #1a1a2e;
+            color: white;
+            padding: 20px 32px;
+            text-align: center;
+        }
+
+        .footer-content p {
+            margin: 4px 0;
+        }
+
+        .last-check {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🛍️ Product Catalog</h1>
+                <div id="statusBadge" class="status-badge connecting">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Connecting...</span>
+                </div>
+            </div>
+            <p class="subtitle">Azure SRE Agent Demo - Real-time Database Connectivity</p>
+        </header>
+
+        <!-- Connection Status Banner -->
+        <div id="statusBanner" class="status-banner disconnected hidden">
+            <div class="banner-content">
+                <span class="banner-icon">⚠️</span>
+                <div class="banner-text">
+                    <strong>Database Connection Lost</strong>
+                    <p id="errorMessage"></p>
+                    <p>The Azure SRE Agent should detect this incident automatically.</p>
+                </div>
+                <span id="retryCountdown" class="retry-info">Retrying in 10s</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Loading State -->
+            <div id="loadingContainer" class="loading-container">
+                <div class="spinner"></div>
+                <p>Loading products from Azure SQL Database...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorContainer" class="error-container hidden">
+                <div class="error-icon">🔌</div>
+                <h2>Unable to Load Products</h2>
+                <p>The database connection is currently unavailable.</p>
+                <div id="errorDetails" class="error-details"></div>
+                <button class="retry-button" onclick="loadProducts()">
+                    🔄 Retry Now
+                </button>
+            </div>
+
+            <!-- Products Grid -->
+            <div id="productsGrid" class="products-grid hidden"></div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>🤖 Monitored by <strong>Azure SRE Agent</strong></p>
+                <p id="lastCheck" class="last-check">Last health check: --</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        let connectionStatus = 'connecting';
+        let retryCount = 10;
+        let retryInterval = null;
+        let healthCheckInterval = null;
+
+        // DOM Elements
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
+        const statusBanner = document.getElementById('statusBanner');
+        const errorMessage = document.getElementById('errorMessage');
+        const retryCountdown = document.getElementById('retryCountdown');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const errorContainer = document.getElementById('errorContainer');
+        const errorDetails = document.getElementById('errorDetails');
+        const productsGrid = document.getElementById('productsGrid');
+        const lastCheck = document.getElementById('lastCheck');
+
+        function setStatus(status, message = '') {
+            connectionStatus = status;
+            statusBadge.className = `status-badge ${status}`;
+            
+            switch (status) {
+                case 'connected':
+                    statusText.textContent = 'Connected';
+                    statusBanner.classList.add('hidden');
+                    stopRetryCountdown();
+                    break;
+                case 'connecting':
+                    statusText.textContent = 'Connecting...';
+                    statusBanner.classList.add('hidden');
+                    break;
+                case 'disconnected':
+                    statusText.textContent = 'Disconnected';
+                    statusBanner.classList.remove('hidden');
+                    errorMessage.textContent = message;
+                    startRetryCountdown();
+                    break;
+            }
+        }
+
+        function startRetryCountdown() {
+            if (retryInterval) return;
+            retryCount = 10;
+            retryCountdown.textContent = `Retrying in ${retryCount}s`;
+            
+            retryInterval = setInterval(() => {
+                retryCount--;
+                retryCountdown.textContent = `Retrying in ${retryCount}s`;
+                if (retryCount <= 0) {
+                    loadProducts();
+                    retryCount = 10;
+                }
+            }, 1000);
+        }
+
+        function stopRetryCountdown() {
+            if (retryInterval) {
+                clearInterval(retryInterval);
+                retryInterval = null;
+            }
+        }
+
+        async function loadProducts() {
+            setStatus('connecting');
+            loadingContainer.classList.remove('hidden');
+            errorContainer.classList.add('hidden');
+            productsGrid.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/products');
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || error.details || 'Failed to load products');
+                }
+
+                const products = await response.json();
+                
+                if (products.length === 0) {
+                    throw new Error('No products found in database');
+                }
+
+                renderProducts(products);
+                setStatus('connected');
+                loadingContainer.classList.add('hidden');
+                productsGrid.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading products:', error);
+                setStatus('disconnected', error.message);
+                loadingContainer.classList.add('hidden');
+                errorContainer.classList.remove('hidden');
+                errorDetails.textContent = error.message;
+            }
+        }
+
+        function renderProducts(products) {
+            productsGrid.innerHTML = products.map(product => `
+                <div class="product-card">
+                    <div class="product-category">${escapeHtml(product.category)}</div>
+                    <h3 class="product-name">${escapeHtml(product.name)}</h3>
+                    <p class="product-description">${escapeHtml(product.description)}</p>
+                    <div class="product-footer">
+                        <span class="product-price">$${product.price.toFixed(2)}</span>
+                        <span class="product-stock ${product.stock < 10 ? 'low-stock' : ''}">${product.stock} in stock</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await fetch('/api/health');
+                const health = await response.json();
+                lastCheck.textContent = `Last health check: ${new Date(health.timestamp).toLocaleTimeString()}`;
+
+                if (health.status === 'healthy' && connectionStatus !== 'connected') {
+                    loadProducts();
+                } else if (health.status === 'unhealthy' && connectionStatus === 'connected') {
+                    setStatus('disconnected', health.error || 'Database connection lost');
+                    productsGrid.classList.add('hidden');
+                    errorContainer.classList.remove('hidden');
+                    errorDetails.textContent = health.error || 'Unknown error';
+                }
+            } catch (error) {
+                if (connectionStatus === 'connected') {
+                    setStatus('disconnected', 'Health check failed');
+                }
+            }
+        }
+
+        // Initialize
+        loadProducts();
+        healthCheckInterval = setInterval(checkHealth, 5000);
+    </script>
+</body>
+</html>

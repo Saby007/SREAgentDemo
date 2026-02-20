@@ -1,6 +1,0 @@
-@MonitoringDemo_HostAddress = http://localhost:5049
-
-GET {{MonitoringDemo_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
